@@ -1,1 +1,72 @@
 /* Styles will use Tailwind classes */
+
+/* Card animations and effects */
+.bg-white, .dark .dark\:bg-gray-800 {
+  transition: all 0.3s ease;
+}
+
+/* Pulsating effect for the "waiting for opponent" card */
+@keyframes pulse-border {
+  0%, 100% {
+    border-color: rgba(209, 213, 219, 0.5);
+  }
+  50% {
+    border-color: rgba(209, 213, 219, 1);
+  }
+}
+
+.dark @keyframes pulse-border {
+  0%, 100% {
+    border-color: rgba(75, 85, 99, 0.5);
+  }
+  50% {
+    border-color: rgba(75, 85, 99, 1);
+  }
+}
+
+.border-dashed {
+  animation: pulse-border 2s ease-in-out infinite;
+}
+
+/* Hover effects for interactive elements */
+button:not(:disabled) {
+  transition: transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+button:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+button:not(:disabled):active {
+  transform: translateY(0);
+}
+
+/* Subtle card depth effects */
+.bg-white, .dark .dark\:bg-gray-800 {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Animation for the copy success feedback */
+.text-green-600 {
+  animation: scale-in 0.2s ease-in-out;
+}
+
+@keyframes scale-in {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Responsive adjustments */
+@media (min-width: 1024px) {
+  .max-w-7xl {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+}

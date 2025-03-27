@@ -22,7 +22,7 @@ export class GameService {
   constructor(
     private socketService: SocketService,
     private router: Router,
-    @Inject(PLATFORM_ID) private platformId: Object
+    @Inject(PLATFORM_ID) private platformId: object
   ) {
     this.init();
   }
@@ -55,11 +55,37 @@ export class GameService {
     });
 
     // Player joined event
-    this.socketService.on<{player: Player}>(GameEvents.PLAYER_JOINED).subscribe(data => {
+    this.socketService.on<{player: Player, reconnected?: boolean}>(GameEvents.PLAYER_JOINED).subscribe(data => {
       const currentRoom = this.currentRoomSubject.value;
       if (currentRoom) {
+        // Create a copy of the current room
         const updatedRoom = { ...currentRoom };
-        updatedRoom.players = [...updatedRoom.players, data.player];
+
+        // If it's a reconnection
+        if (data.reconnected) {
+          // Find the player if they were already in the list (might be missing due to state inconsistency)
+          const existingPlayerIndex = updatedRoom.players.findIndex(p => p.id === data.player.id);
+
+          if (existingPlayerIndex === -1) {
+            // If the player isn't in the list, add them
+            console.log(`Reconnected player ${data.player.nickname} added to room`);
+            updatedRoom.players = [...updatedRoom.players, data.player];
+          } else {
+            // If the player is already in the list, update their info
+            console.log(`Reconnected player ${data.player.nickname} updated in room`);
+            updatedRoom.players = [
+              ...updatedRoom.players.slice(0, existingPlayerIndex),
+              data.player,
+              ...updatedRoom.players.slice(existingPlayerIndex + 1)
+            ];
+          }
+        } else {
+          // Regular new player joining
+          console.log(`New player ${data.player.nickname} joined the room`);
+          updatedRoom.players = [...updatedRoom.players, data.player];
+        }
+
+        // Update the room state with the modified player list
         this.currentRoomSubject.next(updatedRoom);
       }
     });
@@ -192,8 +218,26 @@ export class GameService {
       playerId: player.id
     };
 
+    // Create a handler for leave room success
+    const handleLeaveRoomSuccess = () => {
+      // Only clear the room after server confirms
+      this.currentRoomSubject.next(null);
+    };
+
+    // Subscribe once to the socket server response
+    this.socketService.once<{success: boolean}>(GameEvents.LEAVE_ROOM + '_RESPONSE').subscribe(response => {
+      if (response.success) {
+        handleLeaveRoomSuccess();
+      }
+    });
+
+    // Emit leave room event
     this.socketService.emit(GameEvents.LEAVE_ROOM, payload);
-    this.currentRoomSubject.next(null);
+
+    // Set a timeout to clear the room in case the server doesn't respond
+    setTimeout(() => {
+      handleLeaveRoomSuccess();
+    }, 1000);
   }
 
   reconnect(): void {

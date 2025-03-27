@@ -12,7 +12,7 @@ export class SocketService {
 
   constructor(
     private ngZone: NgZone,
-    @Inject(PLATFORM_ID) private platformId: Object
+    @Inject(PLATFORM_ID) private platformId: object
   ) {
     if (isPlatformBrowser(this.platformId)) {
       this.socket = io(environment.apiUrl);

@@ -26,23 +26,67 @@ export class RoomService {
 
   addPlayerToRoom(roomId: string, player: Player): Room | undefined {
     const room = this.getRoomById(roomId);
-    if (room && room.players.length < 2 && room.status === RoomStatus.WAITING) {
+    if (!room) {
+      console.log(`Room ${roomId} not found`);
+      return undefined;
+    }
+
+    console.log(`Attempting to add player to room ${roomId}. Room status: ${room.status}, Player count: ${room.players.length}`);
+
+    if (room.players.length < 2 && room.status === RoomStatus.WAITING) {
       room.players.push(player);
       this.rooms.set(roomId, room);
+      console.log(`Player ${player.id} (${player.nickname}) successfully added to room ${roomId}`);
       return room;
+    } else {
+      if (room.players.length >= 2) {
+        console.log(`Cannot add player to room ${roomId}: Room is full`);
+      } else if (room.status !== RoomStatus.WAITING) {
+        console.log(`Cannot add player to room ${roomId}: Room status is ${room.status}, expected ${RoomStatus.WAITING}`);
+      }
+      return undefined;
     }
-    return undefined;
   }
 
   removePlayerFromRoom(roomId: string, playerId: string): Room | undefined {
     const room = this.getRoomById(roomId);
     if (room) {
+      // Save the original status and number of players for comparison
+      const originalStatus = room.status;
+      const originalPlayerCount = room.players.length;
+
+      // Remove the player
       room.players = room.players.filter(p => p.id !== playerId);
 
       // If no players left, delete the room
       if (room.players.length === 0) {
         this.rooms.delete(roomId);
         return undefined;
+      }
+
+      // If one player left and we were in READY, PLAYING, or FINISHED status
+      // change back to WAITING so others can join
+      if (room.players.length === 1 &&
+          (originalStatus === RoomStatus.READY ||
+           originalStatus === RoomStatus.PLAYING ||
+           originalStatus === RoomStatus.FINISHED ||
+           originalStatus === RoomStatus.PLAY_AGAIN_PENDING)) {
+        console.log(`Room ${roomId} status changed from ${originalStatus} to ${RoomStatus.WAITING}`);
+        room.status = RoomStatus.WAITING;
+
+        // Clear game state if there was any
+        if (room.gameState) {
+          room.gameState = undefined;
+        }
+
+        // Clear other game-related fields
+        room.currentTurn = undefined;
+        room.winner = undefined;
+        room.winningCells = undefined;
+        room.lastMove = undefined;
+        room.playAgainResponses = undefined;
+        room.playAgainTimeoutEnd = undefined;
+        room.playAgainInitiator = undefined;
       }
 
       this.rooms.set(roomId, room);
@@ -273,5 +317,28 @@ export class RoomService {
     this.rooms.delete(originalRoomId);
 
     return newRoom;
+  }
+
+  // Set room status to WAITING when a player leaves
+  setRoomWaiting(roomId: string): Room | undefined {
+    const room = this.getRoomById(roomId);
+    if (room) {
+      console.log(`Explicitly setting room ${roomId} status from ${room.status} to ${RoomStatus.WAITING}`);
+      room.status = RoomStatus.WAITING;
+
+      // Clear game state
+      room.gameState = undefined;
+      room.currentTurn = undefined;
+      room.winner = undefined;
+      room.winningCells = undefined;
+      room.lastMove = undefined;
+      room.playAgainResponses = undefined;
+      room.playAgainTimeoutEnd = undefined;
+      room.playAgainInitiator = undefined;
+
+      this.rooms.set(roomId, room);
+      return room;
+    }
+    return undefined;
   }
 }

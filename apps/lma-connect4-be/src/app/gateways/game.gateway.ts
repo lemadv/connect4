@@ -130,19 +130,47 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return { success: false, error: 'Room is full' };
       }
 
-      // Create a player
-      const player = this.playerService.createPlayer(
-        payload.player.nickname,
-        payload.player.avatar,
-        client.id
+      // Check if a player with the same nickname exists in this server session
+      const existingPlayers = this.playerService.getAllPlayers();
+      const existingPlayer = existingPlayers.find(p =>
+        p.nickname === payload.player.nickname &&
+        (!p.roomId || p.roomId !== payload.roomId) // Either has no room or is in a different room
       );
+
+      let player;
+
+      if (existingPlayer) {
+        // Update the existing player's socket ID
+        player = this.playerService.updatePlayerSocket(existingPlayer.id, client.id);
+
+        // Update the avatar in case it changed
+        if (player && player.avatar !== payload.player.avatar) {
+          player.avatar = payload.player.avatar;
+          this.playerService.updatePlayer(player);
+        }
+      } else {
+        // Create a new player if no matching player found
+        player = this.playerService.createPlayer(
+          payload.player.nickname,
+          payload.player.avatar,
+          client.id
+        );
+      }
 
       // Add player to room
       const updatedRoom = this.roomService.addPlayerToRoom(payload.roomId, player);
 
       if (!updatedRoom) {
-        client.emit(GameEvents.ERROR, { message: 'Failed to join room' });
-        return { success: false, error: 'Failed to join room' };
+        // Check the room status to provide a more helpful error message
+        const room = this.roomService.getRoomById(payload.roomId);
+        if (room && room.status !== RoomStatus.WAITING) {
+          this.logger.error(`Failed to join room - Room status is ${room.status} but should be ${RoomStatus.WAITING}`);
+          client.emit(GameEvents.ERROR, { message: `Room is not in waiting state (current status: ${room.status})` });
+          return { success: false, error: `Room is not in waiting state (current status: ${room.status})` };
+        } else {
+          client.emit(GameEvents.ERROR, { message: 'Failed to join room' });
+          return { success: false, error: 'Failed to join room' };
+        }
       }
 
       // Assign player to room
@@ -259,11 +287,27 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
           // Join the socket room
           client.join(player.roomId);
 
-          // Send the current game state
+          // Send the current game state to the reconnected player
           client.emit(GameEvents.UPDATE_GAME, {
             room: room
           });
 
+          // Notify other players in the room about the reconnection
+          client.to(player.roomId).emit(GameEvents.PLAYER_JOINED, {
+            player: {
+              id: player.id,
+              nickname: player.nickname,
+              avatar: player.avatar
+            },
+            reconnected: true
+          });
+
+          // Also broadcast an update to ensure everyone has the same state
+          this.server.to(player.roomId).emit(GameEvents.UPDATE_GAME, {
+            room: room
+          });
+
+          this.logger.log(`Player ${player.nickname} (${player.id}) reconnected to room ${player.roomId}`);
           return { success: true, room };
         }
       }
@@ -285,8 +329,30 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       const { roomId, playerId } = payload;
 
+      // Get original room state to see how many players are in it
+      const originalRoom = this.roomService.getRoomById(roomId);
+      const originalPlayerCount = originalRoom?.players.length || 0;
+
       // Remove player from room
       this.roomService.removePlayerFromRoom(roomId, playerId);
+
+      // Remove the player's association with the room
+      this.playerService.removePlayerFromRoom(playerId);
+
+      // If there was more than one player, and now there's only one player left
+      // explicitly set the room to WAITING status
+      if (originalPlayerCount > 1) {
+        const updatedRoom = this.roomService.getRoomById(roomId);
+        if (updatedRoom && updatedRoom.players.length === 1) {
+          this.logger.log(`Setting room ${roomId} to WAITING after player ${playerId} left`);
+          this.roomService.setRoomWaiting(roomId);
+
+          // Notify the remaining player about the status change
+          this.server.to(roomId).emit(GameEvents.UPDATE_GAME, {
+            room: this.roomService.getRoomById(roomId)
+          });
+        }
+      }
 
       // Leave the socket room
       client.leave(roomId);
@@ -296,10 +362,19 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         playerId
       });
 
+      // Send confirmation to the client who left
+      client.emit(GameEvents.LEAVE_ROOM + '_RESPONSE', {
+        success: true
+      });
+
       return { success: true };
     } catch (error) {
       this.logger.error('Error leaving room:', error);
       client.emit(GameEvents.ERROR, { message: 'Failed to leave room' });
+      // Send error response
+      client.emit(GameEvents.LEAVE_ROOM + '_RESPONSE', {
+        success: false
+      });
       return { success: false, error: 'Failed to leave room' };
     }
   }

@@ -22,6 +22,7 @@ export class LobbyComponent implements OnInit, OnDestroy {
   joinRoomForm: FormGroup;
   error: string | null = null;
   isDarkMode = false;
+  copySuccess = false;
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -132,5 +133,20 @@ export class LobbyComponent implements OnInit, OnDestroy {
   getCurrentPlayerAvatar(): SafeHtml {
     if (!this.player?.nickname) return this.getPlayerAvatar('');
     return this.getPlayerAvatar(this.player.nickname);
+  }
+
+  // Copy room ID to clipboard
+  copyRoomId(): void {
+    if (!this.room?.id || !isPlatformBrowser(this.platformId)) return;
+
+    navigator.clipboard.writeText(this.room.id).then(() => {
+      // Show temporary success message
+      this.copySuccess = true;
+      setTimeout(() => {
+        this.copySuccess = false;
+      }, 2000);
+    }).catch(err => {
+      console.error('Could not copy room ID: ', err);
+    });
   }
 }

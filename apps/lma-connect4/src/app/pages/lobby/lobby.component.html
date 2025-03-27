@@ -1,16 +1,17 @@
-<div class="min-h-screen p-4 md:p-8 flex flex-col">
-  <div class="flex justify-between mb-6">
-    <div class="flex items-center space-x-3">
-      <div class="w-10 h-10 rounded-full overflow-hidden shadow-sm">
+<div class="min-h-screen p-4 md:p-8 flex flex-col bg-gray-50 dark:bg-gray-900">
+  <!-- Header section with user info and actions -->
+  <div class="max-w-7xl mx-auto w-full flex justify-between mb-6 p-4 md:p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+    <div class="flex items-center space-x-4">
+      <div class="w-12 h-12 rounded-full overflow-hidden shadow-sm">
         <div [innerHTML]="getCurrentPlayerAvatar()"></div>
       </div>
-      <span class="font-medium">{{ player?.nickname }}</span>
+      <span class="font-medium text-lg">{{ player?.nickname }}</span>
     </div>
 
     <div class="flex space-x-3">
       <button
         (click)="toggleTheme()"
-        class="p-2 rounded-full bg-gray-200 dark:bg-gray-700"
+        class="p-2 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
         aria-label="Toggle dark mode"
       >
         <svg *ngIf="isDarkMode" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -22,7 +23,7 @@
       </button>
       <button
         (click)="logout()"
-        class="p-2 rounded-full bg-gray-200 dark:bg-gray-700"
+        class="p-2 rounded-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
         aria-label="Logout"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -32,90 +33,137 @@
     </div>
   </div>
 
-  <div class="flex-1 flex flex-col items-center justify-center">
-    <h1 class="text-3xl font-bold text-center mb-8 text-blue-600 dark:text-blue-400">Connect 4</h1>
+  <div class="flex-1 flex flex-col items-center justify-center max-w-7xl w-full mx-auto">
+    <h1 class="text-4xl md:text-5xl font-bold text-center mb-10 text-blue-600 dark:text-blue-400">Connect 4</h1>
 
     <!-- Error message -->
-    <div *ngIf="error" class="w-full max-w-md mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+    <div *ngIf="error" class="w-full max-w-xl mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative">
       <span class="block sm:inline">{{ error }}</span>
     </div>
 
     <!-- Room info -->
-    <div *ngIf="room" class="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
-      <h2 class="text-xl font-semibold mb-4">Room: {{ room.id }}</h2>
+    <div *ngIf="room" class="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 md:p-8 mb-6">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-semibold">Room: <span class="text-blue-600 dark:text-blue-400">{{ room.id }}</span></h2>
+        <!-- Copy room code button -->
+        <button
+          (click)="copyRoomId()"
+          class="flex items-center space-x-2 py-2 px-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-md transition-colors"
+        >
+          <svg *ngIf="!copySuccess" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          <svg *ngIf="copySuccess" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <span class="hidden md:inline">{{ copySuccess ? 'Copied!' : 'Copy Code' }}</span>
+        </button>
+      </div>
 
-      <div class="mb-4">
-        <h3 class="text-lg font-medium mb-2">Players</h3>
-        <div class="space-y-2">
-          <div *ngFor="let player of room.players" class="flex items-center space-x-3 p-2 rounded-md bg-gray-100 dark:bg-gray-700">
-            <div class="w-10 h-10 rounded-full overflow-hidden shadow-sm">
+      <div class="mb-8">
+        <h3 class="text-xl font-medium mb-4 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          Players
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div *ngFor="let player of room.players"
+               class="flex items-center space-x-3 p-3 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+            <div class="w-12 h-12 rounded-full overflow-hidden shadow-md">
               <div [innerHTML]="getPlayerAvatar(player.nickname)"></div>
             </div>
-            <span>{{ player.nickname }}</span>
-            <span *ngIf="room.hostId === player.id" class="ml-auto text-xs text-blue-600 dark:text-blue-400 font-medium">Host</span>
+            <div class="flex flex-col">
+              <span class="font-medium">{{ player.nickname }}</span>
+              <span *ngIf="room.hostId === player.id" class="text-sm text-blue-600 dark:text-blue-400 font-medium">Host</span>
+            </div>
           </div>
 
-          <div *ngIf="room.players.length === 1" class="flex items-center space-x-3 p-2 rounded-md bg-gray-100 dark:bg-gray-700 opacity-50">
-            <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center shadow-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div *ngIf="room.players.length === 1"
+               class="flex items-center space-x-3 p-3 rounded-lg bg-gray-100 dark:bg-gray-700 opacity-70 border-2 border-dashed border-gray-300 dark:border-gray-600">
+            <div class="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </div>
-            <span>Waiting for opponent...</span>
+            <div class="flex flex-col">
+              <span class="font-medium">Waiting for opponent...</span>
+              <span class="text-sm text-gray-500 dark:text-gray-400">Share room code with a friend</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <p class="mb-4 text-sm">Share this room code with a friend to join the game.</p>
-
       <!-- Start Game button - only visible to the host when two players are in the room -->
-      <div *ngIf="isHost() && room.players.length === 2 && room.status === 'ready'" class="mb-4">
+      <div *ngIf="isHost() && room.players.length === 2 && room.status === 'ready'" class="mb-6">
         <button
           (click)="startGame()"
-          class="w-full py-2 px-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded mb-4"
+          class="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-bold text-lg rounded-lg transition-colors"
         >
           Start Game
         </button>
-        <p class="text-sm text-center text-gray-600 dark:text-gray-400">As the host, you can start the game now that your opponent has joined.</p>
+        <p class="mt-3 text-sm text-center text-gray-600 dark:text-gray-400">As the host, you can start the game now that your opponent has joined.</p>
       </div>
 
       <!-- Waiting for host message for non-host player -->
-      <div *ngIf="!isHost() && room.players.length === 2 && room.status === 'ready'" class="mb-4 p-3 bg-blue-100 dark:bg-blue-900 rounded-lg text-center">
-        <p class="text-sm">Waiting for the host to start the game...</p>
+      <div *ngIf="!isHost() && room.players.length === 2 && room.status === 'ready'" class="mb-6 p-4 bg-blue-100 dark:bg-blue-900 rounded-lg text-center">
+        <div class="flex items-center justify-center mb-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <p class="font-medium">Waiting for the host to start the game...</p>
+        </div>
+        <p class="text-sm text-gray-700 dark:text-gray-300">Get ready to play!</p>
       </div>
 
       <button
         (click)="leaveRoom()"
-        class="w-full py-2 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded"
+        class="w-full py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg transition-colors"
       >
         Leave Room
       </button>
     </div>
 
     <!-- Create or Join Room -->
-    <div *ngIf="!room" class="w-full max-w-md">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-          <h2 class="text-xl font-semibold mb-4">Create Room</h2>
+    <div *ngIf="!room" class="w-full max-w-5xl">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 md:p-8 transform transition-all hover:scale-105">
+          <div class="flex items-center mb-6">
+            <div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center mr-4">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+            </div>
+            <h2 class="text-2xl font-semibold">Create Room</h2>
+          </div>
+          <p class="mb-6 text-gray-600 dark:text-gray-400">Create a new game room and invite a friend to play. You'll be the host with control to start the game.</p>
           <button
             (click)="createRoom()"
-            class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded"
+            class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-lg transition-colors"
           >
             Create New Room
           </button>
         </div>
 
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-          <h2 class="text-xl font-semibold mb-4">Join Room</h2>
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 md:p-8 transform transition-all hover:scale-105">
+          <div class="flex items-center mb-6">
+            <div class="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center mr-4">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+              </svg>
+            </div>
+            <h2 class="text-2xl font-semibold">Join Room</h2>
+          </div>
+          <p class="mb-6 text-gray-600 dark:text-gray-400">Enter a room code to join a friend's game. You'll need the 6-digit code from your friend.</p>
           <form [formGroup]="joinRoomForm" (ngSubmit)="joinRoom()" class="space-y-4">
             <div class="form-group">
               <input
                 type="text"
                 formControlName="roomId"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700"
-                placeholder="Enter room code"
+                class="w-full px-4 py-3 text-lg border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                placeholder="Enter 6-digit room code"
               >
-              <div *ngIf="joinRoomForm.get('roomId')?.invalid && joinRoomForm.get('roomId')?.touched" class="text-red-500 text-sm mt-1">
+              <div *ngIf="joinRoomForm.get('roomId')?.invalid && joinRoomForm.get('roomId')?.touched" class="text-red-500 text-sm mt-2">
                 <div *ngIf="joinRoomForm.get('roomId')?.errors?.['required']">Room code is required</div>
                 <div *ngIf="joinRoomForm.get('roomId')?.errors?.['minlength'] || joinRoomForm.get('roomId')?.errors?.['maxlength']">Room code must be 6 digits</div>
               </div>
@@ -124,7 +172,7 @@
             <button
               type="submit"
               [disabled]="joinRoomForm.invalid"
-              class="w-full py-2 px-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded disabled:opacity-50"
+              class="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-bold text-lg rounded-lg transition-colors disabled:opacity-50"
             >
               Join Room
             </button>

@@ -39,6 +39,15 @@ export class PlayerService {
     return player;
   }
 
+  // Update a player's properties
+  updatePlayer(player: Player): Player | undefined {
+    if (player && player.id) {
+      this.players.set(player.id, player);
+      return player;
+    }
+    return undefined;
+  }
+
   removePlayer(id: string): boolean {
     return this.players.delete(id);
   }
@@ -47,6 +56,14 @@ export class PlayerService {
     const player = this.getPlayerById(playerId);
     if (player) {
       player.roomId = roomId;
+      this.players.set(playerId, player);
+    }
+  }
+
+  removePlayerFromRoom(playerId: string): void {
+    const player = this.getPlayerById(playerId);
+    if (player) {
+      delete player.roomId;
       this.players.set(playerId, player);
     }
   }
