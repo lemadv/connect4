@@ -1,0 +1,61 @@
+<div class="flex flex-col items-center justify-center min-h-screen p-4">
+  <div class="absolute top-4 right-4">
+    <button
+      (click)="toggleTheme()"
+      class="p-2 rounded-full bg-gray-200 dark:bg-gray-700"
+      aria-label="Toggle dark mode"
+    >
+      <svg *ngIf="isDarkMode" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+      <svg *ngIf="!isDarkMode" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+      </svg>
+    </button>
+  </div>
+
+  <div class="w-full max-w-md p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+    <h1 class="text-3xl font-bold text-center mb-8 text-blue-600 dark:text-blue-400">Connect 4</h1>
+
+    <form [formGroup]="playerForm" (ngSubmit)="onSubmit()" class="space-y-6">
+      <div class="form-group">
+        <label for="nickname" class="block text-sm font-medium">Your Nickname</label>
+        <input
+          type="text"
+          id="nickname"
+          formControlName="nickname"
+          class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700"
+          placeholder="Enter your nickname"
+        >
+        <div *ngIf="playerForm.get('nickname')?.invalid && playerForm.get('nickname')?.touched" class="text-red-500 text-sm mt-1">
+          <div *ngIf="playerForm.get('nickname')?.errors?.['required']">Nickname is required</div>
+          <div *ngIf="playerForm.get('nickname')?.errors?.['minlength']">Nickname must be at least 3 characters</div>
+          <div *ngIf="playerForm.get('nickname')?.errors?.['maxlength']">Nickname must be less than 15 characters</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="block text-sm font-medium mb-2">Choose Your Avatar</label>
+        <div class="grid grid-cols-4 gap-3">
+          <div
+            *ngFor="let avatar of avatars"
+            (click)="selectAvatar(avatar)"
+            class="avatar-option cursor-pointer border rounded-md p-2 flex items-center justify-center"
+            [class.selected]="selectedAvatar === avatar"
+          >
+            <!-- SVG Avatar -->
+            <div class="w-14 h-14" [innerHTML]="getAvatarSvg(avatar)"></div>
+          </div>
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        [disabled]="playerForm.invalid"
+        class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded disabled:opacity-50"
+      >
+        Let's Play!
+      </button>
+    </form>
+  </div>
+</div>

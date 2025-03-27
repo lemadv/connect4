@@ -1,3 +1,67 @@
+# Connect4 Game
+
+A multiplayer Connect4 game with frontend and backend components.
+
+## Features
+
+- **Real-time Multiplayer**: Play Connect4 with friends in real-time using WebSockets
+- **User Profiles**: Create your profile with nickname and avatar
+- **Room System**: Create or join game rooms with unique codes
+- **Game Logic**: Full Connect4 game implementation with win detection
+- **Responsive Design**: Mobile-first responsive design
+- **Dark Mode Support**: Toggle between light and dark themes
+- **Animations**: Interactive game animations including winning celebration
+- **Reconnection Support**: Automatically reconnect to active games
+
+## Architecture
+
+- **Frontend**: Angular with Tailwind CSS
+- **Backend**: NestJS with Socket.IO
+- **Persistence**: In-memory storage (can be extended with a database)
+
+## Prerequisites
+
+- Node.js (v16 or later)
+- npm (v8 or later)
+
+## Getting Started
+
+### Installation
+
+```bash
+# Install dependencies
+npm install
+```
+
+### Running the Application
+
+```bash
+# Run both frontend and backend
+npm run start:all
+
+# Run only the backend
+npm run start:be
+
+# Run only the frontend
+npm run start:fe
+```
+
+### Game Flow
+
+1. **Landing Page**: Enter nickname and select avatar
+2. **Lobby**: Create a new room or join an existing one
+3. **Game Room**: Play Connect4 against another player
+4. **Results**: See winning animations and play again
+
+## Development
+
+This project was created with Nx.
+
+### Project Structure
+
+- `apps/lma-connect4/`: Frontend Angular application
+- `apps/lma-connect4-be/`: Backend NestJS application
+
 # Lma
 
 <a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>

@@ -1,0 +1,26 @@
+/* Styles will use Tailwind classes */
+
+/* SVG Avatar styles */
+.avatar-option {
+  transition: all 0.2s ease-in-out;
+}
+
+.avatar-option:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+
+.avatar-option.selected {
+  background-color: rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.6);
+}
+
+/* Dark mode support */
+:host-context(.dark) .avatar-option.selected {
+  background-color: rgba(96, 165, 250, 0.2);
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.6);
+}
+
+:host-context(.dark) .avatar-option:hover {
+  box-shadow: 0 0 10px rgba(96, 165, 250, 0.5);
+}

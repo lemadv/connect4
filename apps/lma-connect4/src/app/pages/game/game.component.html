@@ -1,0 +1,184 @@
+<div class="min-h-screen p-4 md:p-6 flex flex-col">
+  <div class="flex justify-between mb-6">
+    <div class="flex items-center space-x-3">
+      <button
+        (click)="backToLobby()"
+        class="p-2 rounded-full bg-gray-200 dark:bg-gray-700"
+        aria-label="Back to Lobby"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+      </button>
+      <span class="font-medium hidden sm:inline">Room: {{ room?.id }}</span>
+    </div>
+
+    <button
+      (click)="toggleTheme()"
+      class="p-2 rounded-full bg-gray-200 dark:bg-gray-700"
+      aria-label="Toggle dark mode"
+    >
+      <svg *ngIf="isDarkMode" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+      <svg *ngIf="!isDarkMode" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Game Area -->
+  <div class="flex-1 flex flex-col items-center justify-center relative">
+    <!-- Players Info -->
+    <div class="w-full max-w-lg mb-6 grid grid-cols-2 gap-4">
+      <!-- Current Player -->
+      <div class="flex items-center space-x-3 p-2 rounded-md"
+           [class.bg-blue-100]="playerNumber === 1 && !gameOver"
+           [class.bg-red-100]="playerNumber === 2 && !gameOver"
+           [class.bg-gray-100]="gameOver"
+           [class.dark:bg-blue-900]="playerNumber === 1 && !gameOver && isDarkMode"
+           [class.dark:bg-red-900]="playerNumber === 2 && !gameOver && isDarkMode"
+           [class.dark:bg-gray-800]="gameOver && isDarkMode">
+        <div class="w-10 h-10 rounded-full overflow-hidden shadow-sm">
+          <!-- SVG Avatar -->
+          <div [innerHTML]="getPlayerAvatar()"></div>
+        </div>
+        <div class="flex flex-col">
+          <div class="flex items-center">
+            <span class="font-medium">{{ player?.nickname }}</span>
+            <div class="ml-2 w-4 h-4 rounded-full" [ngClass]="{'bg-red-500': playerNumber === 1, 'bg-yellow-500': playerNumber === 2}"></div>
+          </div>
+          <span class="text-xs"
+                [class.text-green-600]="isMyTurn && !gameOver"
+                [class.text-gray-500]="!isMyTurn || gameOver"
+                [class.dark:text-green-400]="isMyTurn && !gameOver && isDarkMode"
+                [class.dark:text-gray-400]="(!isMyTurn || gameOver) && isDarkMode">
+            {{ isMyTurn && !gameOver ? 'Your turn' : 'Waiting...' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Opponent -->
+      <div class="flex items-center space-x-3 p-2 rounded-md justify-end"
+           [class.bg-blue-100]="playerNumber === 2 && !gameOver"
+           [class.bg-red-100]="playerNumber === 1 && !gameOver"
+           [class.bg-gray-100]="gameOver"
+           [class.dark:bg-blue-900]="playerNumber === 2 && !gameOver && isDarkMode"
+           [class.dark:bg-red-900]="playerNumber === 1 && !gameOver && isDarkMode"
+           [class.dark:bg-gray-800]="gameOver && isDarkMode">
+        <div class="flex flex-col items-end">
+          <div class="flex items-center">
+            <div class="mr-2 w-4 h-4 rounded-full" [ngClass]="{'bg-red-500': playerNumber === 2, 'bg-yellow-500': playerNumber === 1}"></div>
+            <span class="font-medium">{{ opponent?.nickname || 'Opponent' }}</span>
+          </div>
+          <span class="text-xs"
+                [class.text-green-600]="!isMyTurn && !gameOver"
+                [class.text-gray-500]="isMyTurn || gameOver"
+                [class.dark:text-green-400]="!isMyTurn && !gameOver && isDarkMode"
+                [class.dark:text-gray-400]="(isMyTurn || gameOver) && isDarkMode">
+            {{ !isMyTurn && !gameOver ? 'Their turn' : 'Waiting...' }}
+          </span>
+        </div>
+
+        <!-- Opponent's avatar container -->
+        <div class="w-10 h-10 rounded-full overflow-hidden shadow-sm" *ngIf="opponent">
+          <!-- SVG Avatar -->
+          <div [innerHTML]="getOpponentAvatar()"></div>
+        </div>
+
+        <!-- Waiting for opponent placeholder -->
+        <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center shadow-sm" *ngIf="!opponent">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Board -->
+    <div class="board-container mb-6">
+      <div class="board">
+        <div *ngFor="let col of boardColumns"
+             class="column-container"
+             [ngClass]="getColumnClass(col)"
+             (click)="makeMove(col)"
+             (keydown.enter)="makeMove(col)"
+             (keydown.space)="makeMove(col)"
+             tabindex="0"
+             role="button"
+             [attr.aria-label]="'Place disc in column ' + (col + 1)">
+          <div *ngFor="let row of [0,1,2,3,4,5]" class="cell-container">
+            <div [ngClass]="getCellClass(row, col)"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Status -->
+    <div *ngIf="gameOver" class="w-full max-w-md text-center mb-4">
+      <div *ngIf="isDraw" class="p-4 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
+        <h2 class="text-2xl font-bold">It's a draw!</h2>
+        <p class="mt-2">No player was able to connect 4 discs.</p>
+      </div>
+
+      <div *ngIf="!isDraw" class="p-4"
+           [class.bg-green-100]="winner?.id === player?.id"
+           [class.bg-red-100]="winner?.id !== player?.id"
+           [class.dark:bg-green-900]="winner?.id === player?.id && isDarkMode"
+           [class.dark:bg-red-900]="winner?.id !== player?.id && isDarkMode"
+           class="rounded-lg">
+        <h2 class="text-2xl font-bold">
+          {{ winner?.id === player?.id ? 'You won!' : (winner?.nickname + ' won!') }}
+        </h2>
+        <p class="mt-2">{{ winner?.id === player?.id ? 'Congratulations!' : 'Better luck next time!' }}</p>
+      </div>
+
+      <!-- Game Over Actions -->
+      <div class="mt-4 flex justify-center space-x-4">
+        <button
+          (click)="playAgain()"
+          class="py-2 px-6 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded inline-flex items-center"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Play Again
+        </button>
+
+        <button
+          (click)="backToLobby()"
+          class="py-2 px-6 bg-gray-500 hover:bg-gray-600 text-white font-bold rounded inline-flex items-center"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
+          </svg>
+          Back to Lobby
+        </button>
+      </div>
+    </div>
+
+    <!-- Win Animation Overlay -->
+    <div *ngIf="gameOver && !isDraw && showWinAnimation" class="win-animation">
+      <div class="confetti"></div>
+      <div class="confetti"></div>
+      <div class="confetti"></div>
+      <div class="confetti"></div>
+      <div class="confetti"></div>
+      <div class="confetti"></div>
+      <div class="confetti"></div>
+      <div class="confetti"></div>
+      <div class="confetti"></div>
+      <div class="confetti"></div>
+      <div class="confetti"></div>
+      <div class="confetti"></div>
+      <div class="confetti"></div>
+      <div class="confetti"></div>
+      <div class="confetti"></div>
+      <div class="confetti"></div>
+      <div class="confetti"></div>
+      <div class="confetti"></div>
+      <div class="confetti"></div>
+      <div class="confetti"></div>
+    </div>
+  </div>
+</div>
