@@ -1,0 +1,9 @@
+{
+  "name": "lma-connect4-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/lma-connect4-e2e/src",
+  "implicitDependencies": ["lma-connect4"],
+  "// targets": "to see all targets run: nx show project lma-connect4-e2e --web",
+  "targets": {}
+}
