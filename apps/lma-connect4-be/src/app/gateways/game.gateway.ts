@@ -296,11 +296,25 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const { playerId } = payload;
 
       // Update player's socket ID
-      const player = this.playerService.updatePlayerSocket(playerId, client.id);
+      let player = this.playerService.updatePlayerSocket(playerId, client.id);
 
       if (!player) {
-        client.emit(GameEvents.ERROR, { message: 'Player not found' });
-        return { success: false, error: 'Player not found' };
+        // Instead of returning an error, create a new player with the socket ID
+        this.logger.log(`Player with ID ${playerId} not found - creating a new player with same ID`);
+
+        // Create a new player with the provided ID and socket ID
+        player = {
+          id: playerId,
+          nickname: `Player-${playerId.substring(0, 6)}`,
+          avatar: '',
+          socketId: client.id
+        };
+
+        // Store the new player in the player service
+        this.playerService.updatePlayer(player);
+
+        // Just return success with the new player
+        return { success: true, player };
       }
 
       // If player was in a room, reconnect them
