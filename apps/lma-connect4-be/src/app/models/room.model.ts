@@ -8,6 +8,15 @@ export enum RoomStatus {
   PLAY_AGAIN_PENDING = 'play_again_pending'
 }
 
+/**
+ * Interface for player play again response
+ */
+export interface PlayAgainResponse {
+  playerId: string;
+  accepted: boolean;
+  timestamp: number;
+}
+
 export interface Room {
   id: string;
   players: Player[];
@@ -23,10 +32,7 @@ export interface Room {
     playerId: string;
   };
   winningCells?: {row: number, col: number}[]; // coordinates of winning cells
-  playAgainResponses?: {
-    playerId: string;
-    accepted: boolean;
-  }[];
+  playAgainResponses?: PlayAgainResponse[];
   playAgainTimeoutEnd?: number; // timestamp when the play again timeout will end
   playAgainInitiator?: string; // player id who initiated the play again request
 }
