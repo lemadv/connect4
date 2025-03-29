@@ -6,6 +6,7 @@
     "start:be": "nx serve lma-connect4-be",
     "start:fe": "nx serve lma-connect4",
     "start:all": "concurrently \"npm run start:be\" \"npm run start:fe\""
+    
   },
   "private": true,
   "dependencies": {
