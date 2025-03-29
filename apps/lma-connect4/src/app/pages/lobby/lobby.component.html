@@ -45,18 +45,18 @@
     <div *ngIf="room" class="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 md:p-8 mb-6">
       <div class="flex justify-between items-center mb-6">
         <h2 class="text-2xl font-semibold">Room: <span class="text-blue-600 dark:text-blue-400">{{ room.id }}</span></h2>
-        <!-- Copy room code button -->
+        <!-- Share Invite Link button -->
         <button
-          (click)="copyRoomId()"
+          (click)="copyInviteLink()"
           class="flex items-center space-x-2 py-2 px-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-md transition-colors"
         >
           <svg *ngIf="!copySuccess" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
           </svg>
           <svg *ngIf="copySuccess" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
           </svg>
-          <span class="hidden md:inline">{{ copySuccess ? 'Copied!' : 'Copy Code' }}</span>
+          <span class="hidden md:inline">{{ copySuccess ? 'Copied!' : 'Share Invite Link' }}</span>
         </button>
       </div>
 
@@ -88,7 +88,7 @@
             </div>
             <div class="flex flex-col">
               <span class="font-medium">Waiting for opponent...</span>
-              <span class="text-sm text-gray-500 dark:text-gray-400">Share room code with a friend</span>
+              <span class="text-sm text-gray-500 dark:text-gray-400">Share invite link with a friend</span>
             </div>
           </div>
         </div>
@@ -154,7 +154,7 @@
             </div>
             <h2 class="text-2xl font-semibold">Join Room</h2>
           </div>
-          <p class="mb-6 text-gray-600 dark:text-gray-400">Enter a room code to join a friend's game. You'll need the 6-digit code from your friend.</p>
+          <p class="mb-6 text-gray-600 dark:text-gray-400">Enter a room code to join a friend's game, or use an invite link they've shared with you.</p>
           <form [formGroup]="joinRoomForm" (ngSubmit)="joinRoom()" class="space-y-4">
             <div class="form-group">
               <input
@@ -177,6 +177,10 @@
               Join Room
             </button>
           </form>
+
+          <div class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+            <p>If you received an invite link, simply click the link to join the game!</p>
+          </div>
         </div>
       </div>
     </div>

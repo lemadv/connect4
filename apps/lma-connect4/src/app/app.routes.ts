@@ -20,6 +20,10 @@ export const appRoutes: Route[] = [
     canActivate: [playerGuard]
   },
   {
+    path: 'invite/:roomId',
+    component: LandingComponent
+  },
+  {
     path: '**',
     redirectTo: ''
   }

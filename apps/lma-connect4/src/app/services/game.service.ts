@@ -14,10 +14,12 @@ export class GameService {
   private currentPlayerSubject = new BehaviorSubject<Player | null>(null);
   private currentRoomSubject = new BehaviorSubject<Room | null>(null);
   private gameErrorSubject = new BehaviorSubject<string | null>(null);
+  private inviteRoomIdSubject = new BehaviorSubject<string | null>(null);
 
   public currentPlayer$ = this.currentPlayerSubject.asObservable();
   public currentRoom$ = this.currentRoomSubject.asObservable();
   public gameError$ = this.gameErrorSubject.asObservable();
+  public inviteRoomId$ = this.inviteRoomIdSubject.asObservable();
 
   constructor(
     private socketService: SocketService,
@@ -261,6 +263,40 @@ export class GameService {
     };
 
     this.socketService.emit(GameEvents.JOIN_ROOM, payload);
+  }
+
+  // Set invite room ID from URL
+  setInviteRoomId(roomId: string | null): void {
+    this.inviteRoomIdSubject.next(roomId);
+  }
+
+  // Get the invite room ID
+  getInviteRoomId(): string | null {
+    return this.inviteRoomIdSubject.value;
+  }
+
+  // Generate invitation link for the current room
+  generateInviteLink(): string {
+    const room = this.currentRoomSubject.value;
+    if (!room) return '';
+
+    // Get the base URL of the application
+    let baseUrl = '';
+    if (isPlatformBrowser(this.platformId)) {
+      baseUrl = `${window.location.protocol}//${window.location.host}`;
+    }
+
+    return `${baseUrl}/invite/${room.id}`;
+  }
+
+  // Join room from invitation link
+  joinRoomFromInvite(): void {
+    const roomId = this.inviteRoomIdSubject.value;
+    if (roomId) {
+      this.joinRoom(roomId);
+      // Clear the invite room ID after joining
+      this.inviteRoomIdSubject.next(null);
+    }
   }
 
   makeMove(column: number): void {

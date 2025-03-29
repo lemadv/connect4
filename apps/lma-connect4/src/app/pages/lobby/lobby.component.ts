@@ -135,18 +135,21 @@ export class LobbyComponent implements OnInit, OnDestroy {
     return this.getPlayerAvatar(this.player.nickname);
   }
 
-  // Copy room ID to clipboard
-  copyRoomId(): void {
-    if (!this.room?.id || !isPlatformBrowser(this.platformId)) return;
+  // Copy invite link to clipboard
+  copyInviteLink(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
 
-    navigator.clipboard.writeText(this.room.id).then(() => {
+    const inviteLink = this.gameService.generateInviteLink();
+    if (!inviteLink) return;
+
+    navigator.clipboard.writeText(inviteLink).then(() => {
       // Show temporary success message
       this.copySuccess = true;
       setTimeout(() => {
         this.copySuccess = false;
       }, 2000);
     }).catch(err => {
-      console.error('Could not copy room ID: ', err);
+      console.error('Could not copy invite link: ', err);
     });
   }
 }
