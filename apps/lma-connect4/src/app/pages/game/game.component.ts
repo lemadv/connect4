@@ -3,6 +3,8 @@ import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { GameService } from '../../services/game.service';
+import { ConfigService } from '../../services/config.service';
+import { ThemeService } from '../../services/theme.service';
 import { Player } from '../../models/player.model';
 import { Room, RoomStatus } from '../../models/room.model';
 import { Subject, takeUntil } from 'rxjs';
@@ -40,17 +42,15 @@ export class GameComponent implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private gameService: GameService,
+    private configService: ConfigService,
+    private themeService: ThemeService,
     private sanitizer: DomSanitizer,
     @Inject(PLATFORM_ID) private platformId: object
   ) {
-    // Set dark mode based on localStorage or system preference
-    if (isPlatformBrowser(this.platformId)) {
-      this.isDarkMode = localStorage.getItem('theme') === 'dark' ||
-        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    }
-
-    // Apply the initial theme
-    this.applyTheme();
+    // Get dark mode from theme service
+    this.themeService.isDarkMode$.pipe(takeUntil(this.destroy$)).subscribe(isDark => {
+      this.isDarkMode = isDark;
+    });
   }
 
   ngOnInit(): void {
@@ -115,7 +115,7 @@ export class GameComponent implements OnInit, OnDestroy {
             if (!this.showWinAnimation) {
               this.winAnimationTimer = setTimeout(() => {
                 this.showWinAnimation = true;
-              }, 500);
+              }, this.configService.WIN_ANIMATION_DELAY);
             }
           }
         }
@@ -233,11 +233,7 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   toggleTheme(): void {
-    this.isDarkMode = !this.isDarkMode;
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem('theme', this.isDarkMode ? 'dark' : 'light');
-    }
-    this.applyTheme();
+    this.themeService.toggleTheme();
   }
 
   private updateGameState(): void {
@@ -251,16 +247,6 @@ export class GameComponent implements OnInit, OnDestroy {
 
     // Check if it's the player's turn
     this.isMyTurn = this.gameService.isMyTurn();
-  }
-
-  private applyTheme(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      if (this.isDarkMode) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    }
   }
 
   // Get an SVG avatar for the current player
