@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://your-production-url.com'
+  apiUrl: 'https://connect4-be-inhw.onrender.com/'
 };
