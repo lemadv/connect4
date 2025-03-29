@@ -40,13 +40,16 @@
     <!-- Players Info -->
     <div class="w-full max-w-lg mb-6 grid grid-cols-2 gap-4">
       <!-- Current Player -->
-      <div class="flex items-center space-x-3 p-2 rounded-md"
+      <div class="flex items-center space-x-3 p-3 rounded-md transition-all duration-300"
            [class.bg-blue-100]="playerNumber === 1 && !gameOver"
            [class.bg-red-100]="playerNumber === 2 && !gameOver"
            [class.bg-gray-100]="gameOver"
            [class.dark:bg-blue-900]="playerNumber === 1 && !gameOver && isDarkMode"
            [class.dark:bg-red-900]="playerNumber === 2 && !gameOver && isDarkMode"
-           [class.dark:bg-gray-800]="gameOver && isDarkMode">
+           [class.dark:bg-gray-800]="gameOver && isDarkMode"
+           [class.border-4]="isMyTurn && !gameOver"
+           [class.border-green-500]="isMyTurn && !gameOver"
+           [class.shadow-lg]="isMyTurn && !gameOver">
         <div class="w-10 h-10 rounded-full overflow-hidden shadow-sm">
           <!-- SVG Avatar -->
           <div [innerHTML]="getPlayerAvatar()"></div>
@@ -56,35 +59,52 @@
             <span class="font-medium">{{ player?.nickname }}</span>
             <div class="ml-2 w-4 h-4 rounded-full" [ngClass]="{'bg-red-500': playerNumber === 1, 'bg-yellow-500': playerNumber === 2}"></div>
           </div>
-          <span class="text-xs"
+          <span class="text-sm font-bold"
                 [class.text-green-600]="isMyTurn && !gameOver"
                 [class.text-gray-500]="!isMyTurn || gameOver"
                 [class.dark:text-green-400]="isMyTurn && !gameOver && isDarkMode"
-                [class.dark:text-gray-400]="(!isMyTurn || gameOver) && isDarkMode">
-            {{ isMyTurn && !gameOver ? 'Your turn' : 'Waiting...' }}
+                [class.dark:text-gray-400]="(!isMyTurn || gameOver) && isDarkMode"
+                [class.animate-pulse]="isMyTurn && !gameOver">
+            {{ isMyTurn && !gameOver ? 'YOUR TURN' : 'Waiting...' }}
           </span>
+        </div>
+        <!-- Turn arrow indicator for your turn -->
+        <div *ngIf="isMyTurn && !gameOver" class="ml-auto animate-bounce">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
         </div>
       </div>
 
       <!-- Opponent -->
-      <div class="flex items-center space-x-3 p-2 rounded-md justify-end"
+      <div class="flex items-center space-x-3 p-3 rounded-md justify-end transition-all duration-300"
            [class.bg-blue-100]="playerNumber === 2 && !gameOver"
            [class.bg-red-100]="playerNumber === 1 && !gameOver"
            [class.bg-gray-100]="gameOver"
            [class.dark:bg-blue-900]="playerNumber === 2 && !gameOver && isDarkMode"
            [class.dark:bg-red-900]="playerNumber === 1 && !gameOver && isDarkMode"
-           [class.dark:bg-gray-800]="gameOver && isDarkMode">
+           [class.dark:bg-gray-800]="gameOver && isDarkMode"
+           [class.border-4]="!isMyTurn && !gameOver"
+           [class.border-green-500]="!isMyTurn && !gameOver"
+           [class.shadow-lg]="!isMyTurn && !gameOver">
+        <!-- Turn arrow indicator for opponent's turn -->
+        <div *ngIf="!isMyTurn && !gameOver" class="mr-auto animate-bounce">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </div>
         <div class="flex flex-col items-end">
           <div class="flex items-center">
             <div class="mr-2 w-4 h-4 rounded-full" [ngClass]="{'bg-red-500': playerNumber === 2, 'bg-yellow-500': playerNumber === 1}"></div>
             <span class="font-medium">{{ opponent?.nickname || 'Opponent' }}</span>
           </div>
-          <span class="text-xs"
+          <span class="text-sm font-bold"
                 [class.text-green-600]="!isMyTurn && !gameOver"
                 [class.text-gray-500]="isMyTurn || gameOver"
                 [class.dark:text-green-400]="!isMyTurn && !gameOver && isDarkMode"
-                [class.dark:text-gray-400]="(isMyTurn || gameOver) && isDarkMode">
-            {{ !isMyTurn && !gameOver ? 'Their turn' : 'Waiting...' }}
+                [class.dark:text-gray-400]="(isMyTurn || gameOver) && isDarkMode"
+                [class.animate-pulse]="!isMyTurn && !gameOver">
+            {{ !isMyTurn && !gameOver ? 'THEIR TURN' : 'Waiting...' }}
           </span>
         </div>
 
@@ -107,7 +127,7 @@
     <div class="board-container mb-6">
       <div class="board">
         <div *ngFor="let col of boardColumns"
-             class="column-container"
+             class="game-column"
              [ngClass]="getColumnClass(col)"
              (click)="makeMove(col)"
              (keydown.enter)="makeMove(col)"

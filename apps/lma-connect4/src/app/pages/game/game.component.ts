@@ -210,13 +210,14 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   getColumnClass(col: number): string {
-    if (!this.room?.gameState || this.gameOver) return '';
+    let classes = '';
 
-    let classes = 'column';
-
-    // Highlight hoverable columns during player's turn
-    if (this.isMyTurn && this.room.gameState[0][col] === 0) {
-      classes += ' hoverable';
+    // Only allow interactions when it's the player's turn and the game is not over
+    if (this.isMyTurn && !this.gameOver) {
+      // Check if the column is full before letting player interact
+      if (this.room?.gameState && this.room.gameState[0][col] === 0) {
+        classes += ' active-column';
+      }
     }
 
     return classes;
