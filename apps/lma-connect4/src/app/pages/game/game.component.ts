@@ -30,6 +30,7 @@ export class GameComponent implements OnInit, OnDestroy {
   lastMoveRow: number | null = null;
   winningCells: {row: number, col: number}[] = [];
   isDarkMode = false;
+  errorMessage: string | null = null;
 
   private destroy$ = new Subject<void>();
 
@@ -126,6 +127,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.gameService.gameError$
       .pipe(takeUntil(this.destroy$))
       .subscribe(error => {
+        this.errorMessage = error;
         // For specific errors that require returning to lobby
         if (error && (
             error.includes('disconnected') ||
@@ -280,5 +282,9 @@ export class GameComponent implements OnInit, OnDestroy {
   // Method to return to lobby manually
   returnToLobby(): void {
     this.gameService.leaveRoom();
+  }
+
+  dismissError(): void {
+    this.errorMessage = null;
   }
 }

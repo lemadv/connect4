@@ -42,6 +42,11 @@ export class GameService {
           const player = this.currentPlayerSubject.value;
           const room = this.currentRoomSubject.value;
 
+          // Clear the reconnection message regardless of player or room state
+          if (this.gameErrorSubject.value === 'Connection lost. Trying to reconnect...') {
+            this.gameErrorSubject.next(null);
+          }
+
           if (player && player.id) {
             // Attempt to reconnect to any existing game
             this.reconnect();
