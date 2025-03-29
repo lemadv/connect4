@@ -123,7 +123,7 @@
 
     <!-- Game Board -->
     <div class="board-container mb-6 relative">
-      <div class="board">
+      <div class="board" [ngClass]="{'winner-board': gameOver && !isDraw}">
         <div *ngFor="let col of boardColumns"
              class="game-column"
              [ngClass]="getColumnClass(col)"

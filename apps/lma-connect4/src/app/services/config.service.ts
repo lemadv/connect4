@@ -21,7 +21,7 @@ export class ConfigService {
   readonly ERROR_DISMISS_TIMEOUT = 3000; // 3 seconds
   readonly GAME_OVER_TIMEOUT = 30000; // 30 seconds
   readonly PLAY_AGAIN_TIMEOUT = 30000; // 30 seconds
-  readonly WIN_ANIMATION_DELAY = 500; // 0.5 seconds
+  readonly WIN_ANIMATION_DELAY = 2500; // Increased from 500ms to 2.5 seconds to show winning combination longer
 
   // Animation durations
   readonly PIECE_DROP_ANIMATION_DURATION = 1000; // 1 second
