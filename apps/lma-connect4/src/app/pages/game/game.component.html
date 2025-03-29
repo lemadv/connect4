@@ -40,14 +40,13 @@
     <!-- Players Info -->
     <div class="w-full max-w-lg mb-6 grid grid-cols-2 gap-4">
       <!-- Current Player -->
-      <div class="flex items-center space-x-3 p-3 rounded-md transition-all duration-300"
+      <div class="flex items-center space-x-3 p-3 rounded-md transition-all duration-300 border-4 border-transparent"
            [class.bg-blue-100]="playerNumber === 1 && !gameOver"
            [class.bg-red-100]="playerNumber === 2 && !gameOver"
            [class.bg-gray-100]="gameOver"
            [class.dark:bg-blue-900]="playerNumber === 1 && !gameOver && isDarkMode"
            [class.dark:bg-red-900]="playerNumber === 2 && !gameOver && isDarkMode"
            [class.dark:bg-gray-800]="gameOver && isDarkMode"
-           [class.border-4]="isMyTurn && !gameOver"
            [class.border-green-500]="isMyTurn && !gameOver"
            [class.shadow-lg]="isMyTurn && !gameOver">
         <div class="w-10 h-10 rounded-full overflow-hidden shadow-sm">
@@ -77,14 +76,13 @@
       </div>
 
       <!-- Opponent -->
-      <div class="flex items-center space-x-3 p-3 rounded-md justify-end transition-all duration-300"
+      <div class="flex items-center space-x-3 p-3 rounded-md justify-end transition-all duration-300 border-4 border-transparent"
            [class.bg-blue-100]="playerNumber === 2 && !gameOver"
            [class.bg-red-100]="playerNumber === 1 && !gameOver"
            [class.bg-gray-100]="gameOver"
            [class.dark:bg-blue-900]="playerNumber === 2 && !gameOver && isDarkMode"
            [class.dark:bg-red-900]="playerNumber === 1 && !gameOver && isDarkMode"
            [class.dark:bg-gray-800]="gameOver && isDarkMode"
-           [class.border-4]="!isMyTurn && !gameOver"
            [class.border-green-500]="!isMyTurn && !gameOver"
            [class.shadow-lg]="!isMyTurn && !gameOver">
         <!-- Turn arrow indicator for opponent's turn -->
