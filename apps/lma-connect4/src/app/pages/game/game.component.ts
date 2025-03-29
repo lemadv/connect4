@@ -63,6 +63,12 @@ export class GameComponent implements OnInit, OnDestroy {
     this.gameService.currentRoom$
       .pipe(takeUntil(this.destroy$))
       .subscribe(room => {
+        // If room is null, navigate back to lobby
+        if (!room) {
+          this.router.navigate(['/lobby']);
+          return;
+        }
+
         // Update the room reference
         this.room = room;
 
@@ -81,6 +87,13 @@ export class GameComponent implements OnInit, OnDestroy {
             // Check for game over
             this.gameOver = room.status === RoomStatus.FINISHED;
             this.isDraw = this.gameOver && !room.winner;
+          }
+
+          // If we're not in PLAYING or FINISHED status, go back to lobby
+          if (room.status !== RoomStatus.PLAYING &&
+              room.status !== RoomStatus.FINISHED) {
+            this.router.navigate(['/lobby']);
+            return;
           }
 
           // Update the last move information for disc animation
@@ -107,6 +120,21 @@ export class GameComponent implements OnInit, OnDestroy {
         }
 
         this.updateGameState();
+      });
+
+    // Listen for errors that might affect game state
+    this.gameService.gameError$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(error => {
+        // For specific errors that require returning to lobby
+        if (error && (
+            error.includes('disconnected') ||
+            error.includes('connection lost') ||
+            error.includes('error')
+          )) {
+          // Show the error but don't navigate, let the room update handle navigation
+          console.log('Game error:', error);
+        }
       });
   }
 
@@ -247,5 +275,10 @@ export class GameComponent implements OnInit, OnDestroy {
   // Sanitize SVG content for safe rendering
   private sanitizeSvg(svgContent: string): SafeHtml {
     return this.sanitizer.bypassSecurityTrustHtml(svgContent);
+  }
+
+  // Method to return to lobby manually
+  returnToLobby(): void {
+    this.gameService.leaveRoom();
   }
 }

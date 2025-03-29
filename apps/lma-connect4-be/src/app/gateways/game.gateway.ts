@@ -62,11 +62,32 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const room = this.roomService.getRoomById(player.roomId);
 
       if (room) {
+        // Remove player from room
+        this.roomService.removePlayerFromRoom(player.roomId, player.id);
+
+        // Remove the player's association with the room
+        this.playerService.removePlayerFromRoom(player.id);
+
         // Notify other players in the room
         client.to(room.id).emit(GameEvents.PLAYER_DISCONNECTED, {
           playerId: player.id,
           nickname: player.nickname
         });
+
+        // If there was more than one player, and now there's only one player left
+        // update the room state for the remaining player
+        if (room.players.length > 1) {
+          const updatedRoom = this.roomService.getRoomById(room.id);
+          if (updatedRoom && updatedRoom.players.length === 1) {
+            this.logger.log(`Setting room ${room.id} to WAITING after player ${player.id} disconnected`);
+            this.roomService.setRoomWaiting(room.id);
+
+            // Notify the remaining player about the status change
+            this.server.to(room.id).emit(GameEvents.UPDATE_GAME, {
+              room: this.roomService.getRoomById(room.id)
+            });
+          }
+        }
       }
     }
   }
@@ -120,13 +141,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
       const room = this.roomService.getRoomById(payload.roomId);
 
       if (!room) {
-        client.emit(GameEvents.ERROR, { message: 'Room not found' });
+        client.emit(GameEvents.ERROR, { message: 'Room not found', critical: true });
         return { success: false, error: 'Room not found' };
       }
 
       // Check if the room is full
       if (room.players.length >= 2) {
-        client.emit(GameEvents.ERROR, { message: 'Room is full' });
+        client.emit(GameEvents.ERROR, { message: 'Room is full', critical: true });
         return { success: false, error: 'Room is full' };
       }
 
@@ -165,10 +186,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
         const room = this.roomService.getRoomById(payload.roomId);
         if (room && room.status !== RoomStatus.WAITING) {
           this.logger.error(`Failed to join room - Room status is ${room.status} but should be ${RoomStatus.WAITING}`);
-          client.emit(GameEvents.ERROR, { message: `Room is not in waiting state (current status: ${room.status})` });
+          client.emit(GameEvents.ERROR, {
+            message: `Room is not in waiting state (current status: ${room.status})`,
+            critical: true
+          });
           return { success: false, error: `Room is not in waiting state (current status: ${room.status})` };
         } else {
-          client.emit(GameEvents.ERROR, { message: 'Failed to join room' });
+          client.emit(GameEvents.ERROR, { message: 'Failed to join room', critical: true });
           return { success: false, error: 'Failed to join room' };
         }
       }

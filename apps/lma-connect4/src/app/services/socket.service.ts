@@ -1,6 +1,6 @@
 import { Inject, Injectable, NgZone, PLATFORM_ID } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { isPlatformBrowser } from '@angular/common';
 
@@ -9,14 +9,47 @@ import { isPlatformBrowser } from '@angular/common';
 })
 export class SocketService {
   private socket: Socket | null = null;
+  private connectionStatusSubject = new BehaviorSubject<boolean>(false);
+  public connectionStatus$ = this.connectionStatusSubject.asObservable();
 
   constructor(
     private ngZone: NgZone,
     @Inject(PLATFORM_ID) private platformId: object
   ) {
     if (isPlatformBrowser(this.platformId)) {
-      this.socket = io(environment.apiUrl);
+      this.initSocket();
     }
+  }
+
+  private initSocket(): void {
+    this.socket = io(environment.apiUrl, {
+      reconnection: true,       // Enable reconnection
+      reconnectionAttempts: 5,  // Try to reconnect 5 times
+      reconnectionDelay: 1000,  // Start with 1 second delay
+      reconnectionDelayMax: 5000 // Maximum 5 seconds delay
+    });
+
+    // Setup connection listeners
+    this.socket.on('connect', () => {
+      this.ngZone.run(() => {
+        console.log('Socket connected');
+        this.connectionStatusSubject.next(true);
+      });
+    });
+
+    this.socket.on('disconnect', () => {
+      this.ngZone.run(() => {
+        console.log('Socket disconnected');
+        this.connectionStatusSubject.next(false);
+      });
+    });
+
+    this.socket.on('connect_error', (error) => {
+      this.ngZone.run(() => {
+        console.error('Socket connection error:', error);
+        this.connectionStatusSubject.next(false);
+      });
+    });
   }
 
   connect(): void {
@@ -62,5 +95,10 @@ export class SocketService {
         this.socket?.off(event);
       };
     });
+  }
+
+  // Check if socket is currently connected
+  isConnected(): boolean {
+    return this.socket?.connected || false;
   }
 }

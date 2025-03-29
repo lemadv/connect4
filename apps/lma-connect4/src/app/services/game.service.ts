@@ -28,17 +28,42 @@ export class GameService {
   }
 
   private init(): void {
-    // Load player data from local storage
     if (isPlatformBrowser(this.platformId)) {
-      const playerData = localStorage.getItem('connect4Player');
-      if (playerData) {
-        this.currentPlayerSubject.next(JSON.parse(playerData));
-        this.reconnect();
-      }
-    }
+      // Load player data from local storage
+      this.loadPlayerData();
 
-    // Listen for game events
-    this.listenForEvents();
+      // Setup socket event listeners
+      this.listenForEvents();
+
+      // Monitor socket connection status
+      this.socketService.connectionStatus$.subscribe(isConnected => {
+        // When connection is restored after being lost
+        if (isConnected) {
+          const player = this.currentPlayerSubject.value;
+          const room = this.currentRoomSubject.value;
+
+          if (player && player.id) {
+            // Attempt to reconnect to any existing game
+            this.reconnect();
+
+            // If we were in a game, show that we're reconnected
+            if (room) {
+              this.gameErrorSubject.next('Connection restored. Rejoining game...');
+
+              // Clear the message after a short while
+              setTimeout(() => {
+                if (this.gameErrorSubject.value === 'Connection restored. Rejoining game...') {
+                  this.gameErrorSubject.next(null);
+                }
+              }, 3000);
+            }
+          }
+        } else {
+          // When connection is lost
+          this.gameErrorSubject.next('Connection lost. Trying to reconnect...');
+        }
+      });
+    }
   }
 
   private listenForEvents(): void {
@@ -129,11 +154,36 @@ export class GameService {
 
       // Update the room state with winning cells info
       this.currentRoomSubject.next(updatedRoom);
+
+      // Auto-navigate back to lobby if user doesn't interact with the play again options
+      // after a reasonable timeout (30 seconds)
+      setTimeout(() => {
+        const currentRoom = this.currentRoomSubject.value;
+        // Only auto-navigate if we're still in the same finished game
+        if (currentRoom &&
+            currentRoom.id === updatedRoom.id &&
+            currentRoom.status === RoomStatus.FINISHED) {
+          // If user hasn't made a choice to play again, return to lobby
+          this.gameErrorSubject.next('Game session ended. Returning to lobby.');
+          this.currentRoomSubject.next(null);
+          this.router.navigate(['/lobby']);
+        }
+      }, 30000);
     });
 
     // Error event
-    this.socketService.on<{message: string}>(GameEvents.ERROR).subscribe(data => {
+    this.socketService.on<{message: string, critical?: boolean}>(GameEvents.ERROR).subscribe(data => {
       this.gameErrorSubject.next(data.message);
+
+      // If it's a critical error, clear room state and go to lobby
+      if (data.critical) {
+        setTimeout(() => {
+          this.currentRoomSubject.next(null);
+          if (this.router.url.includes('/game/')) {
+            this.router.navigate(['/lobby']);
+          }
+        }, 1500); // Delay to allow user to see the error message
+      }
     });
 
     // Player disconnected event
@@ -144,6 +194,22 @@ export class GameService {
         const updatedRoom = { ...currentRoom };
         updatedRoom.players = updatedRoom.players.filter(p => p.id !== data.playerId);
         this.currentRoomSubject.next(updatedRoom);
+
+        // If game was in progress, show a notification
+        if (currentRoom.status === RoomStatus.PLAYING || currentRoom.status === RoomStatus.READY) {
+          this.gameErrorSubject.next(`Player ${data.nickname || 'opponent'} has disconnected.`);
+        }
+
+        // If I'm the only player left and we were playing, return to lobby view
+        if (updatedRoom.players.length === 1 &&
+            (currentRoom.status === RoomStatus.PLAYING ||
+             currentRoom.status === RoomStatus.READY)) {
+          // We remain in the room, but the status is set to WAITING
+          // This lets the player wait for someone else to join
+          if (this.router.url.includes('/game/')) {
+            this.router.navigate(['/lobby']);
+          }
+        }
       }
     });
 
@@ -222,11 +288,21 @@ export class GameService {
     const handleLeaveRoomSuccess = () => {
       // Only clear the room after server confirms
       this.currentRoomSubject.next(null);
+
+      // Ensure we're at the lobby page
+      if (!this.router.url.includes('/lobby')) {
+        this.router.navigate(['/lobby']);
+      }
     };
 
     // Subscribe once to the socket server response
     this.socketService.once<{success: boolean}>(GameEvents.LEAVE_ROOM + '_RESPONSE').subscribe(response => {
       if (response.success) {
+        handleLeaveRoomSuccess();
+      } else {
+        // Even if the server reports an error, clear the room for the client
+        // to avoid stuck states
+        this.gameErrorSubject.next('Error leaving room. Returning to lobby.');
         handleLeaveRoomSuccess();
       }
     });
@@ -235,9 +311,10 @@ export class GameService {
     this.socketService.emit(GameEvents.LEAVE_ROOM, payload);
 
     // Set a timeout to clear the room in case the server doesn't respond
+    // Reducing to 500ms for better user experience
     setTimeout(() => {
       handleLeaveRoomSuccess();
-    }, 1000);
+    }, 500);
   }
 
   reconnect(): void {
@@ -443,5 +520,15 @@ export class GameService {
         this.router.navigate(['/lobby']);
       }
     });
+  }
+
+  private loadPlayerData(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      const playerData = localStorage.getItem('connect4Player');
+      if (playerData) {
+        this.currentPlayerSubject.next(JSON.parse(playerData));
+        this.reconnect();
+      }
+    }
   }
 }
