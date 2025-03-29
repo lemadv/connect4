@@ -1,14 +1,14 @@
-<div class="min-h-screen p-4 md:p-6 flex flex-col">
+<div class="min-h-screen p-4 md:p-6 flex flex-col font-inter-var">
   <!-- Header with buttons -->
   <div class="w-full bg-white dark:bg-gray-800 py-3 px-4 shadow-sm flex justify-between items-center">
     <div class="flex items-center">
       <button
-        class="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white p-2 rounded-md flex items-center space-x-2"
+        class="text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white p-2 rounded-md flex items-center space-x-2 font-game"
         (click)="returnToLobby()">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
-        <span class="hidden sm:inline">Return to Lobby</span>
+        <span class="hidden sm:inline font-medium">Return to Lobby</span>
       </button>
     </div>
     <div class="flex items-center space-x-3">
@@ -28,7 +28,7 @@
   <!-- Game Area -->
   <div class="flex-1 flex flex-col items-center justify-center relative">
     <!-- Error message -->
-    <div *ngIf="errorMessage" class="w-full max-w-lg mb-6 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-200 px-4 py-3 rounded-lg relative">
+    <div *ngIf="errorMessage" class="w-full max-w-lg mb-6 bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-200 px-4 py-3 rounded-lg relative font-game font-medium">
       <span class="block sm:inline">{{ errorMessage }}</span>
       <button class="absolute top-0 bottom-0 right-0 px-4 py-3" (click)="dismissError()">
         <svg class="fill-current h-6 w-6 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
@@ -55,10 +55,10 @@
         </div>
         <div class="flex flex-col">
           <div class="flex items-center">
-            <span class="font-medium">{{ player?.nickname }}</span>
+            <span class="font-outfit font-semibold">{{ player?.nickname }}</span>
             <div class="ml-2 w-4 h-4 rounded-full" [ngClass]="{'bg-red-500': playerNumber === 1, 'bg-yellow-500': playerNumber === 2}"></div>
           </div>
-          <span class="text-sm font-bold"
+          <span class="text-sm font-outfit font-bold"
                 [class.text-green-600]="isMyTurn && !gameOver"
                 [class.text-gray-500]="!isMyTurn || gameOver"
                 [class.dark:text-green-400]="isMyTurn && !gameOver && isDarkMode"
@@ -94,9 +94,9 @@
         <div class="flex flex-col items-end">
           <div class="flex items-center">
             <div class="mr-2 w-4 h-4 rounded-full" [ngClass]="{'bg-red-500': playerNumber === 2, 'bg-yellow-500': playerNumber === 1}"></div>
-            <span class="font-medium">{{ opponent?.nickname || 'Opponent' }}</span>
+            <span class="font-outfit font-semibold">{{ opponent?.nickname || 'Opponent' }}</span>
           </div>
-          <span class="text-sm font-bold"
+          <span class="text-sm font-outfit font-bold"
                 [class.text-green-600]="!isMyTurn && !gameOver"
                 [class.text-gray-500]="isMyTurn || gameOver"
                 [class.dark:text-green-400]="!isMyTurn && !gameOver && isDarkMode"
@@ -148,8 +148,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h2 class="text-3xl font-bold mb-2">It's a draw!</h2>
-            <p class="mb-6">The board is full. No player connected 4 discs.</p>
+            <h2 class="text-3xl font-lexend font-bold mb-2">It's a draw!</h2>
+            <p class="mb-6 font-inter">The board is full. No player connected 4 discs.</p>
           </div>
 
           <div *ngIf="!isDraw" class="game-over-content" [ngClass]="{'win-result': winner?.id === player?.id, 'lose-result': winner?.id !== player?.id}">
@@ -161,16 +161,16 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h2 class="text-3xl font-bold mb-2">
+            <h2 class="text-3xl font-lexend font-bold mb-2">
               {{ winner?.id === player?.id ? 'You won!' : (winner?.nickname + ' won!') }}
             </h2>
-            <p class="mb-6">{{ winner?.id === player?.id ? 'Congratulations on your victory!' : 'Better luck next time!' }}</p>
+            <p class="mb-6 font-inter">{{ winner?.id === player?.id ? 'Congratulations on your victory!' : 'Better luck next time!' }}</p>
           </div>
 
           <div class="game-over-actions">
             <button
               (click)="playAgain()"
-              class="action-button play-again-button">
+              class="action-button play-again-button font-outfit font-medium">
               <svg xmlns="http://www.w3.org/2000/svg" class="button-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
@@ -179,7 +179,7 @@
 
             <button
               (click)="backToLobby()"
-              class="action-button back-to-lobby-button">
+              class="action-button back-to-lobby-button font-outfit font-medium">
               <svg xmlns="http://www.w3.org/2000/svg" class="button-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 15l-3-3m0 0l3-3m-3 3h8M3 12a9 9 0 1118 0 9 9 0 01-18 0z" />
               </svg>

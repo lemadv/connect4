@@ -2,14 +2,78 @@
 @tailwind components;
 @tailwind utilities;
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* You can add global styles to this file, and also import other style files */
 
 /* Add your global styles here */
+
+/* Apply font styles based on design needs */
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  body {
+    @apply font-sans text-base;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-bold;
+  }
+
+  /* Game specific elements */
+  .game-title, .game-score {
+    @apply font-game font-bold;
+  }
+
+  /* For Inter variable font support */
+  .font-inter-var {
+    font-family: 'Inter var', 'Inter', system-ui, sans-serif;
+  }
+
+  /* Additional utility classes for font families */
+  .font-inter {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  .font-outfit {
+    font-family: 'Outfit', system-ui, sans-serif;
+  }
+
+  .font-lexend {
+    font-family: 'Lexend', system-ui, sans-serif;
+  }
+
+  /* Font weight utilities that work with variable fonts */
+  .font-light {
+    font-weight: 300;
+    font-variation-settings: 'wght' 300;
+  }
+
+  .font-normal {
+    font-weight: 400;
+    font-variation-settings: 'wght' 400;
+  }
+
+  .font-medium {
+    font-weight: 500;
+    font-variation-settings: 'wght' 500;
+  }
+
+  .font-semibold {
+    font-weight: 600;
+    font-variation-settings: 'wght' 600;
+  }
+
+  .font-bold {
+    font-weight: 700;
+    font-variation-settings: 'wght' 700;
+  }
+
+  /* Ensure the font-display property is applied to all font faces */
+  @font-face {
+    font-display: swap !important;
+  }
+}
